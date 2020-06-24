@@ -1,4 +1,6 @@
-import panel.Main;
+package com.luoyk.toolbox.run;
+
+import com.luoyk.toolbox.panel.Main;
 
 public class Run {
     public static void main(String[] args) {

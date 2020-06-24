@@ -1,4 +1,4 @@
-package utils;
+package com.luoyk.toolbox.utils;
 
 import javax.swing.*;
 import java.awt.*;

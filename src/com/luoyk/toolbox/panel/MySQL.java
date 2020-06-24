@@ -1,4 +1,4 @@
-package panel;
+package com.luoyk.toolbox.panel;
 
 import javax.swing.*;
 

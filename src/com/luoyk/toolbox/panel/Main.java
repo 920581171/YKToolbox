@@ -1,7 +1,7 @@
-package panel;
+package com.luoyk.toolbox.panel;
 
-import utils.Common;
-import utils.ImageLoader;
+import com.luoyk.toolbox.utils.Common;
+import com.luoyk.toolbox.utils.ImageLoader;
 
 import javax.swing.*;
 import java.awt.*;
@@ -38,7 +38,7 @@ public class Main implements ActionListener {
 
     public void init() {
         this.initMenu();
-        this.initLeftPanel(false);
+        this.initLeftPanel();
         this.initRightPanel();
     }
 
@@ -87,12 +87,12 @@ public class Main implements ActionListener {
         this.frame.setJMenuBar(jMenuBar);
     }
 
-    private void initLeftPanel(boolean fromJar) {
+    private void initLeftPanel() {
         Insets insets = new Insets(0, 0, 0, 0);
 
-        ImageIcon mysql = ImageLoader.load("mysql.jpg", fromJar).size64();
-        ImageIcon redis = ImageLoader.load("redis.jpg", fromJar).size64();
-        ImageIcon webSocket = ImageLoader.load("websocket.jpg", fromJar).size64();
+        ImageIcon mysql = ImageLoader.load("mysql.jpg").size64();
+        ImageIcon redis = ImageLoader.load("redis.jpg").size64();
+        ImageIcon webSocket = ImageLoader.load("websocket.jpg").size64();
 
         this.mysql.setText(null);
         this.mysql.setIcon(mysql);
@@ -162,7 +162,6 @@ public class Main implements ActionListener {
                 Common.fontName = e.getActionCommand();
                 break;
             default:
-                System.out.println(e.getActionCommand());
                 if (Common.language.getString("menu_file_menu_setting_font_name_default").equals(e.getActionCommand())) {
                     Common.fontName = "微软雅黑";
                 } else if (Common.language.getString("menu_file_menu_settings_font_size_default").equals(e.getActionCommand())) {
