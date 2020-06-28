@@ -9,7 +9,7 @@ import java.net.URL;
 public class ImageLoader {
     public static Load load(String fileName) {
         try {
-            URL url = ImageLoader.class.getResource("/com/luoyk/toolbox/icon/" + fileName);
+            URL url = ImageLoader.class.getResource("/icon/" + fileName);
             InputStream input = url.openStream();
             return new Load(javax.imageio.ImageIO.read(input));
         } catch (IOException e) {

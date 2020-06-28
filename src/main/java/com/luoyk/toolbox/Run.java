@@ -1,4 +1,4 @@
-package com.luoyk.toolbox.run;
+package com.luoyk.toolbox;
 
 import com.luoyk.toolbox.panel.Main;
 
