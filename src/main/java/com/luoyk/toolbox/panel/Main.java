@@ -3,6 +3,9 @@ package com.luoyk.toolbox.panel;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
+import com.luoyk.toolbox.panel.mysql.MySQL;
+import com.luoyk.toolbox.panel.redis.Redis;
+import com.luoyk.toolbox.panel.websocket.WebSocket;
 import com.luoyk.toolbox.utils.Common;
 import com.luoyk.toolbox.utils.ImageLoader;
 
@@ -23,19 +26,25 @@ public class Main implements ActionListener {
     private JPanel panel;
     private JPanel leftPanel;
     private JPanel rightPanel;
-    private JButton mysql;
-    private JButton redis;
-    private JButton webSocket;
+    private JButton mysqlButton;
+    private JButton redisButton;
+    private JButton webSocketButton;
+
+    private MySQL mySQL;
+    private Redis redis;
+    private WebSocket webSocket;
 
     public void run(String[] args) {
         Common.setLanguage(Locale.CHINA);
         Common.setFont();
         frame = new JFrame(Common.language.getString("title"));
         this.init();
+        frame.setIconImage(ImageLoader.load(ImageLoader.MAIN_ICON).size64().getImage());
         frame.setContentPane(panel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setMinimumSize(new Dimension(1280, 720));
         frame.pack();
+        frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
 
@@ -92,44 +101,60 @@ public class Main implements ActionListener {
 
     private void initLeftPanel() {
         Insets insets = new Insets(0, 0, 0, 0);
+        Dimension dimension = new Dimension(64, 64);
 
-        ImageIcon mysql = ImageLoader.load("mysql.jpg").size64();
-        ImageIcon redis = ImageLoader.load("redis.jpg").size64();
-        ImageIcon webSocket = ImageLoader.load("websocket.jpg").size64();
+        ImageIcon mysql = ImageLoader.load(ImageLoader.MAIN_MYSQL).size48();
+        ImageIcon redis = ImageLoader.load(ImageLoader.MAIN_REDIS).size48();
+        ImageIcon webSocket = ImageLoader.load(ImageLoader.MAIN_WEBSOCKET).size48();
 
-        this.mysql.setText(null);
-        this.mysql.setIcon(mysql);
-        this.mysql.setMargin(insets);
-        this.mysql.setBorderPainted(false);
+        this.mysqlButton.setText(null);
+        this.mysqlButton.setIcon(mysql);
+        this.mysqlButton.setPreferredSize(dimension);
+        this.mysqlButton.setMinimumSize(dimension);
+        this.mysqlButton.setMaximumSize(dimension);
+        this.mysqlButton.setMargin(insets);
+        this.mysqlButton.setBorderPainted(false);
+        this.mysqlButton.setFocusPainted(false);
+        this.mysqlButton.setBackground(Color.WHITE);
 
-        this.redis.setText(null);
-        this.redis.setMargin(insets);
-        this.redis.setIcon(redis);
-        this.redis.setBorderPainted(false);
+        this.redisButton.setText(null);
+        this.redisButton.setMargin(insets);
+        this.redisButton.setPreferredSize(dimension);
+        this.redisButton.setMinimumSize(dimension);
+        this.redisButton.setMaximumSize(dimension);
+        this.redisButton.setIcon(redis);
+        this.redisButton.setBorderPainted(false);
+        this.redisButton.setFocusPainted(false);
+        this.redisButton.setBackground(Color.WHITE);
 
-        this.webSocket.setText(null);
-        this.webSocket.setMargin(insets);
-        this.webSocket.setIcon(webSocket);
-        this.webSocket.setBorderPainted(false);
+        this.webSocketButton.setText(null);
+        this.webSocketButton.setMargin(insets);
+        this.webSocketButton.setPreferredSize(dimension);
+        this.webSocketButton.setMinimumSize(dimension);
+        this.webSocketButton.setMaximumSize(dimension);
+        this.webSocketButton.setIcon(webSocket);
+        this.webSocketButton.setBorderPainted(false);
+        this.webSocketButton.setFocusPainted(false);
+        this.webSocketButton.setBackground(Color.WHITE);
 
-        this.mysql.setActionCommand(MYSQL);
-        this.mysql.addActionListener(this);
-        this.redis.setActionCommand(REDIS);
-        this.redis.addActionListener(this);
-        this.webSocket.setActionCommand("webSocket");
-        this.webSocket.addActionListener(this);
+        this.mysqlButton.setActionCommand(MYSQL);
+        this.mysqlButton.addActionListener(this);
+        this.redisButton.setActionCommand(REDIS);
+        this.redisButton.addActionListener(this);
+        this.webSocketButton.setActionCommand("webSocket");
+        this.webSocketButton.addActionListener(this);
     }
 
     private void initRightPanel() {
         rightPanel.setBackground(Color.WHITE);
 
-        MySQL mySQL = new MySQL();
-        Redis redis = new Redis();
-        WebSocekt webSocekt = new WebSocekt();
+        mySQL = new MySQL();
+        redis = new Redis();
+        webSocket = new WebSocket();
 
         rightPanel.add(MYSQL, mySQL.getPanel());
         rightPanel.add(REDIS, redis.getPanel());
-        rightPanel.add("webSocket", webSocekt.getPanel());
+        rightPanel.add("webSocket", webSocket.getPanel());
     }
 
     private void revalidate() {
@@ -137,6 +162,7 @@ public class Main implements ActionListener {
         this.initMenu();
         this.frame.setTitle(Common.language.getString("title"));
         this.frame.revalidate();
+        mySQL.refresh();
     }
 
     @Override
@@ -201,8 +227,8 @@ public class Main implements ActionListener {
         final JPanel panel1 = new JPanel();
         panel1.setLayout(new GridBagLayout());
         leftPanel.add(panel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-        mysql = new JButton();
-        mysql.setText("Button");
+        mysqlButton = new JButton();
+        mysqlButton.setText("Button");
         GridBagConstraints gbc;
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -210,21 +236,21 @@ public class Main implements ActionListener {
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel1.add(mysql, gbc);
-        redis = new JButton();
-        redis.setText("Button");
+        panel1.add(mysqlButton, gbc);
+        redisButton = new JButton();
+        redisButton.setText("Button");
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel1.add(redis, gbc);
-        webSocket = new JButton();
-        webSocket.setText("Button");
+        panel1.add(redisButton, gbc);
+        webSocketButton = new JButton();
+        webSocketButton.setText("Button");
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 2;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel1.add(webSocket, gbc);
+        panel1.add(webSocketButton, gbc);
         final Spacer spacer1 = new Spacer();
         leftPanel.add(spacer1, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         rightPanel = new JPanel();

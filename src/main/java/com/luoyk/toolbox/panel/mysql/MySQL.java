@@ -1,0 +1,245 @@
+package com.luoyk.toolbox.panel.mysql;
+
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.luoyk.toolbox.api.MySQLApi;
+import com.luoyk.toolbox.api.MySQLConnection;
+import com.luoyk.toolbox.panel.Refresh;
+import com.luoyk.toolbox.utils.Common;
+import com.luoyk.toolbox.utils.ImageLoader;
+
+import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.List;
+
+
+public class MySQL implements Refresh {
+
+    private JPanel panel;
+    private JPanel center;
+    private JButton newConnection;
+    private JButton newSQL;
+    private JPanel west;
+    private JTree connectionTree;
+    private final DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("ROOT");
+    private final DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
+
+    private MouseAdapter connectionTreeMouseListener;
+
+    public MySQL() {
+        initTool();
+        initTree();
+        refresh();
+    }
+
+    public JPanel getPanel() {
+        return panel;
+    }
+
+    private void initTool() {
+
+        Insets insets = new Insets(0, 0, 0, 0);
+        Dimension dimension = new Dimension(64, 64);
+
+        newConnection.setText(null);
+        newConnection.setMargin(insets);
+        newConnection.setPreferredSize(dimension);
+        newConnection.setMinimumSize(dimension);
+        newConnection.setMaximumSize(dimension);
+        newConnection.setIcon(ImageLoader.load(ImageLoader.MYSQL_CONNECTION).size48());
+        newConnection.setBorderPainted(false);
+        newConnection.setFocusPainted(false);
+        newConnection.setBackground(Color.WHITE);
+
+        newConnection.addActionListener(e ->
+                NewConnection.newDialog(connectionInfo -> {
+                    if (MySQLConnection.newConnection(connectionInfo)) {
+                        DefaultMutableTreeNode database = new DefaultMutableTreeNode(connectionInfo.getHost());
+                        rootNode.add(database);
+                        treeModel.reload(rootNode);
+                    }
+                })
+        );
+
+        newSQL.setText(null);
+        newSQL.setToolTipText(Common.language.getString("mysql_button_new_sql"));
+        newSQL.setMargin(insets);
+        newSQL.setPreferredSize(dimension);
+        newSQL.setMinimumSize(dimension);
+        newSQL.setMaximumSize(dimension);
+        newSQL.setIcon(ImageLoader.load(ImageLoader.MYSQL_SQL).size48());
+        newSQL.setBorderPainted(false);
+        newSQL.setFocusPainted(false);
+        newSQL.setBackground(Color.WHITE);
+    }
+
+    private void initTree() {
+        west.setPreferredSize(new Dimension(256, 256));
+        connectionTree.removeMouseListener(connectionTreeMouseListener);
+        connectionTreeMouseListener = new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                TreePath path = connectionTree.getPathForLocation(e.getX(), e.getY());
+                if (path != null) {
+                    if (e.getButton() == MouseEvent.BUTTON3 && e.getClickCount() == 1) {
+                        connectionTree.setSelectionPath(path);
+                        JPopupMenu jPopupMenu = new JPopupMenu();
+                        JMenuItem close = new JMenuItem(Common.language.getString("mysql_tree_popup_menu_item_close"));
+                        close.addActionListener(e1 -> {
+                            switch (path.getPathCount()) {
+                                case 2:
+                                    DefaultMutableTreeNode host = (DefaultMutableTreeNode) path.getLastPathComponent();
+                                    String hostStr = (String) host.getUserObject();
+                                    MySQLConnection.closeConnection(hostStr);
+                                    host.removeAllChildren();
+                                    treeModel.reload(host);
+                                    break;
+                                case 4:
+                                    DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+                                    node.removeAllChildren();
+                                    treeModel.reload(node);
+                                    break;
+                                default:
+                                    break;
+                            }
+                        });
+                        jPopupMenu.add(close);
+                        jPopupMenu.show(connectionTree, e.getX(), e.getY());
+                    }
+
+                    if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
+                        switch (path.getPathCount()) {
+                            case 2:
+                                pathCount2(path);
+                                break;
+                            case 3:
+                                break;
+                            case 4:
+                                pathCount4(path);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+                super.mouseClicked(e);
+            }
+        };
+
+        rootNode.removeAllChildren();
+        MySQLConnection.getConnectionHosts().forEach(hostName -> rootNode.add(new DefaultMutableTreeNode(hostName)));
+        treeModel.reload(rootNode);
+        connectionTree.setRootVisible(false);
+        connectionTree.setModel(treeModel);
+        connectionTree.addMouseListener(connectionTreeMouseListener);
+    }
+
+    private void pathCount2(TreePath path) {
+        DefaultMutableTreeNode host = (DefaultMutableTreeNode) path.getLastPathComponent();
+        //判断该节点是否展开过
+        if (!connectionTree.hasBeenExpanded(path)) {
+            String hostStr = (String) host.getUserObject();
+            final List<String> list = MySQLApi.showDataBase(hostStr);
+            list.forEach(databaseName -> {
+                DefaultMutableTreeNode databaseNode = new DefaultMutableTreeNode(databaseName);
+                databaseNode.add(new DefaultMutableTreeNode(Common.language.getString("mysql_tree_path_2_tables")));
+                databaseNode.add(new DefaultMutableTreeNode(Common.language.getString("mysql_tree_path_2_views")));
+                host.add(databaseNode);
+            });
+            connectionTree.expandPath(path);
+        } else {
+            host.removeAllChildren();
+        }
+        treeModel.reload(host);
+    }
+
+    private void pathCount4(TreePath path) {
+        DefaultMutableTreeNode host = (DefaultMutableTreeNode) path.getPathComponent(1);
+        DefaultMutableTreeNode database = (DefaultMutableTreeNode) path.getPathComponent(2);
+        DefaultMutableTreeNode path3 = (DefaultMutableTreeNode) path.getLastPathComponent();
+        String databaseStr = (String) database.getUserObject();
+        String hostStr = (String) host.getUserObject();
+
+        if (path3.getUserObject().equals(Common.language.getString("mysql_tree_path_2_tables"))) {
+            //判断该节点是否展开过，未展开过就添加新数据
+            if (!connectionTree.hasBeenExpanded(path)) {
+                final List<String> tables = MySQLApi.getTables(hostStr, databaseStr);
+                tables.forEach(tableName -> path3.add(new DefaultMutableTreeNode(tableName)));
+                connectionTree.expandPath(path);
+                treeModel.reload(database);
+            }
+        }
+
+        if (path3.getUserObject().equals(Common.language.getString("mysql_tree_path_2_views"))) {
+            //判断该节点是否展开过，未展开过就添加新数据
+            if (!connectionTree.hasBeenExpanded(path)) {
+                final List<String> tables = MySQLApi.getViews(hostStr, databaseStr);
+                tables.forEach(tableName -> path3.add(new DefaultMutableTreeNode(tableName)));
+                connectionTree.expandPath(path);
+                treeModel.reload(database);
+            }
+        }
+    }
+
+    @Override
+    public void refresh() {
+        initTree();
+        newConnection.setToolTipText(Common.language.getString("mysql_button_new_connection"));
+    }
+
+    {
+// GUI initializer generated by IntelliJ IDEA GUI Designer
+// >>> IMPORTANT!! <<<
+// DO NOT EDIT OR ADD ANY CODE HERE!
+        $$$setupUI$$$();
+    }
+
+    /**
+     * Method generated by IntelliJ IDEA GUI Designer
+     * >>> IMPORTANT!! <<<
+     * DO NOT edit this method OR call it in your code!
+     *
+     * @noinspection ALL
+     */
+    private void $$$setupUI$$$() {
+        panel = new JPanel();
+        panel.setLayout(new BorderLayout(0, 0));
+        final JSplitPane splitPane1 = new JSplitPane();
+        splitPane1.setDividerSize(4);
+        panel.add(splitPane1, BorderLayout.CENTER);
+        center = new JPanel();
+        center.setLayout(new BorderLayout(0, 0));
+        splitPane1.setRightComponent(center);
+        final JPanel panel1 = new JPanel();
+        panel1.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        center.add(panel1, BorderLayout.NORTH);
+        newConnection = new JButton();
+        newConnection.setText("Button");
+        panel1.add(newConnection);
+        newSQL = new JButton();
+        newSQL.setText("Button");
+        panel1.add(newSQL);
+        final JPanel panel2 = new JPanel();
+        panel2.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+        center.add(panel2, BorderLayout.CENTER);
+        west = new JPanel();
+        west.setLayout(new BorderLayout(0, 0));
+        splitPane1.setLeftComponent(west);
+        final JScrollPane scrollPane1 = new JScrollPane();
+        west.add(scrollPane1, BorderLayout.CENTER);
+        connectionTree = new JTree();
+        scrollPane1.setViewportView(connectionTree);
+    }
+
+    /**
+     * @noinspection ALL
+     */
+    public JComponent $$$getRootComponent$$$() {
+        return panel;
+    }
+
+}

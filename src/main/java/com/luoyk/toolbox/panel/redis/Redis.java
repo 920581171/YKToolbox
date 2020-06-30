@@ -1,4 +1,4 @@
-package com.luoyk.toolbox.panel;
+package com.luoyk.toolbox.panel.redis;
 
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
