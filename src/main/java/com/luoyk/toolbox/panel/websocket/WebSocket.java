@@ -1,4 +1,4 @@
-package com.luoyk.toolbox.panel;
+package com.luoyk.toolbox.panel.websocket;
 
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
@@ -7,7 +7,7 @@ import com.intellij.uiDesigner.core.Spacer;
 import javax.swing.*;
 import java.awt.*;
 
-public class WebSocekt {
+public class WebSocket {
     private JPanel panel;
 
     public JPanel getPanel() {
