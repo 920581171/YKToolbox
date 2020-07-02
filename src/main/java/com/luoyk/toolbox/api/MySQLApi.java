@@ -3,11 +3,9 @@ package com.luoyk.toolbox.api;
 import com.luoyk.toolbox.panel.MessageDialog;
 import com.luoyk.toolbox.utils.Common;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class MySQLApi {
@@ -61,6 +59,43 @@ public class MySQLApi {
         } catch (SQLException throwable) {
             throwable.printStackTrace();
             MessageDialog.newDialog(Common.language.getString("mysql_dialog_new_connection_statement_fail"));
+            throw new RuntimeException(throwable);
+        }
+    }
+
+    public static SqlResult selectTable(String host, String database, String table, int page, int size) {
+        Connection connection = MySQLConnection.getConnection(host);
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("use " + database);
+            String sql = "select * from " + table + " limit " + page * size + "," + size;
+            long time = System.currentTimeMillis();
+            try (ResultSet resultSet = statement.executeQuery(sql)) {
+                time = System.currentTimeMillis() - time;
+                ResultSetMetaData metaData = resultSet.getMetaData();
+                int columnCount = metaData.getColumnCount();
+                String[] columnNames = new String[columnCount];
+                for (int i = 1; i <= columnCount; i++) {
+                    columnNames[i - 1] = metaData.getColumnName(i);
+                }
+                LinkedList<String[]> linkedList = new LinkedList<>();
+                while (resultSet.next()) {
+                    String[] data = new String[columnCount];
+                    for (int i = 1; i <= columnCount; i++) {
+                        data[i - 1] = resultSet.getString(i);
+                    }
+                    linkedList.add(data);
+                }
+                String[][] data = new String[linkedList.size()][];
+                linkedList.toArray(data);
+
+                return new SqlResult()
+                        .setSql(sql)
+                        .setTime((int) time)
+                        .setColumnNames(columnNames)
+                        .setData(data);
+            }
+        } catch (SQLException throwable) {
+            MessageDialog.newDialog(Common.language.getString("mysql_dialog_new_connection_query_error"));
             throw new RuntimeException(throwable);
         }
     }

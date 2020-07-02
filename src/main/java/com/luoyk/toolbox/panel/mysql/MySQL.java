@@ -1,8 +1,10 @@
 package com.luoyk.toolbox.panel.mysql;
 
+import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.luoyk.toolbox.api.MySQLApi;
 import com.luoyk.toolbox.api.MySQLConnection;
+import com.luoyk.toolbox.api.SqlResult;
 import com.luoyk.toolbox.panel.Refresh;
 import com.luoyk.toolbox.utils.Common;
 import com.luoyk.toolbox.utils.ImageLoader;
@@ -25,14 +27,18 @@ public class MySQL implements Refresh {
     private JButton newSQL;
     private JPanel west;
     private JTree connectionTree;
+    private JTabbedPane tabbedPane;
     private final DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("ROOT");
     private final DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
+
+    private TabPanel firstTab;
+    private TabPanel lastTab;
+    private DataTable dataTable;
 
     private MouseAdapter connectionTreeMouseListener;
 
     public MySQL() {
         initTool();
-        initTree();
         refresh();
     }
 
@@ -103,6 +109,9 @@ public class MySQL implements Refresh {
                                     node.removeAllChildren();
                                     treeModel.reload(node);
                                     break;
+                                case 5:
+                                    clearTable();
+                                    break;
                                 default:
                                     break;
                             }
@@ -120,6 +129,9 @@ public class MySQL implements Refresh {
                                 break;
                             case 4:
                                 pathCount4(path);
+                                break;
+                            case 5:
+                                pathCount5(path);
                                 break;
                             default:
                                 break;
@@ -170,7 +182,7 @@ public class MySQL implements Refresh {
                 final List<String> tables = MySQLApi.getTables(hostStr, databaseStr);
                 tables.forEach(tableName -> path3.add(new DefaultMutableTreeNode(tableName)));
                 connectionTree.expandPath(path);
-                treeModel.reload(database);
+                treeModel.reload(path3);
             }
         }
 
@@ -180,14 +192,57 @@ public class MySQL implements Refresh {
                 final List<String> tables = MySQLApi.getViews(hostStr, databaseStr);
                 tables.forEach(tableName -> path3.add(new DefaultMutableTreeNode(tableName)));
                 connectionTree.expandPath(path);
-                treeModel.reload(database);
+                treeModel.reload(path3);
             }
         }
+    }
+
+    private void pathCount5(TreePath path) {
+        DefaultMutableTreeNode host = (DefaultMutableTreeNode) path.getPathComponent(1);
+        DefaultMutableTreeNode database = (DefaultMutableTreeNode) path.getPathComponent(2);
+        DefaultMutableTreeNode table = (DefaultMutableTreeNode) path.getLastPathComponent();
+
+        final String hostStr = (String) host.getUserObject();
+        final String databaseStr = (String) database.getUserObject();
+        final String tableStr = (String) table.getUserObject();
+
+        SqlResult sqlResult = MySQLApi.selectTable(hostStr, databaseStr, tableStr, 0, 1000);
+        dataTable.init(sqlResult);
+        firstTab.setTabTitle(tableStr);
+        firstTab.setClose(e -> clearTable());
+    }
+
+    public void initTabbedPane() {
+        String[] menus = new String[]{
+                Common.language.getString("mysql_button_new_sql")
+        };
+
+        this.firstTab = new TabPanel(Common.language.getString("mysql_date_table_first_tab"));
+        this.lastTab = TabPanel.newLastTab(e -> {
+            if (e.getActionCommand().equals(menus[0])) {
+
+            }
+        }, menus);
+
+        dataTable = new DataTable();
+        tabbedPane.removeAll();
+        tabbedPane.setFocusable(false);
+        tabbedPane.add(dataTable.getPanel(), 0);
+        tabbedPane.addTab(null, null);
+        tabbedPane.setTabComponentAt(0, firstTab);
+        tabbedPane.setTabComponentAt(1, lastTab);
+    }
+
+    private void clearTable() {
+        firstTab.removeClose();
+        firstTab.setTabTitle(Common.language.getString("mysql_date_table_first_tab"));
+        dataTable.clearTable();
     }
 
     @Override
     public void refresh() {
         initTree();
+        initTabbedPane();
         newConnection.setToolTipText(Common.language.getString("mysql_button_new_connection"));
     }
 
@@ -226,6 +281,8 @@ public class MySQL implements Refresh {
         final JPanel panel2 = new JPanel();
         panel2.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
         center.add(panel2, BorderLayout.CENTER);
+        tabbedPane = new JTabbedPane();
+        panel2.add(tabbedPane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(200, 200), null, 0, false));
         west = new JPanel();
         west.setLayout(new BorderLayout(0, 0));
         splitPane1.setLeftComponent(west);
