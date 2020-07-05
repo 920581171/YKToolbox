@@ -38,6 +38,20 @@ public class MySQLConnection {
         return false;
     }
 
+    public static boolean TestConnection(ConnectionInfo connectionInfo) {
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            DriverManager.getConnection("jdbc:mysql://" + connectionInfo.getHost() + ":" + connectionInfo.getPort() +
+                            "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC",
+                    connectionInfo.getUsername(), new String(connectionInfo.getPassword()));
+            return true;
+        } catch (ClassNotFoundException | SQLException e) {
+            MessageDialog.newDialog(Common.language.getString("mysql_dialog_new_connection_fail"));
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public static void closeConnection(String host) {
         try {
             ConnectionInfo connectionInfo = HASH_MAP.get(host);

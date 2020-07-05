@@ -220,7 +220,24 @@ public class MySQL implements Refresh {
         this.firstTab = new TabPanel(Common.language.getString("mysql_date_table_first_tab"));
         this.lastTab = TabPanel.newLastTab(e -> {
             if (e.getActionCommand().equals(menus[0])) {
-
+                NewSQL newSQL = new NewSQL();
+                newSQL.setHostSet(MySQLConnection.getConnectionHosts());
+                int tabCount = tabbedPane.getTabCount();
+                TabPanel newSqlTab = new TabPanel(Common.language.getString("mysql_button_new_sql"));
+                newSqlTab.setClose(mouseEvent -> {
+                    tabbedPane.remove(newSqlTab);
+                    tabbedPane.remove(newSQL.getPanel());
+                    if (tabbedPane.getSelectedComponent() == null) {
+                        //数组从0数起，-1指本身,-2指上一个
+                        int previous = tabbedPane.getTabCount() - 2;
+                        tabbedPane.setSelectedIndex(previous);
+                    }
+                });
+                tabbedPane.addTab(null, null);
+                tabbedPane.setComponentAt(tabCount - 1, newSQL.getPanel());
+                tabbedPane.setTabComponentAt(tabCount - 1, newSqlTab);
+                tabbedPane.setTabComponentAt(tabCount, lastTab);
+                tabbedPane.setSelectedComponent(newSQL.getPanel());
             }
         }, menus);
 
