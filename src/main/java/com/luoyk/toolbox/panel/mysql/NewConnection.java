@@ -2,7 +2,10 @@ package com.luoyk.toolbox.panel.mysql;
 
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
 import com.luoyk.toolbox.api.ConnectionInfo;
+import com.luoyk.toolbox.api.MySQLConnection;
+import com.luoyk.toolbox.panel.MessageDialog;
 import com.luoyk.toolbox.utils.Common;
 import com.luoyk.toolbox.utils.ImageLoader;
 
@@ -18,6 +21,7 @@ public class NewConnection extends JDialog {
     private JPanel panel;
     private JButton confirm;
     private JButton cancel;
+    private JButton test;
     private JLabel hostLabel;
     private JLabel passwordLabel;
     private JLabel portLabel;
@@ -58,6 +62,19 @@ public class NewConnection extends JDialog {
         });
         cancel.setText(Common.language.getString("dialog_button_cancel"));
         cancel.addActionListener(e -> this.dispose());
+
+        test.setText(Common.language.getString("dialog_button_test"));
+        test.addActionListener(e -> {
+            ConnectionInfo connectionInfo = new ConnectionInfo();
+            connectionInfo.setHost(host.getText());
+            connectionInfo.setPort(port.getText());
+            connectionInfo.setUsername(username.getText());
+            connectionInfo.setPassword(password.getPassword());
+
+            if (MySQLConnection.TestConnection(connectionInfo)) {
+                MessageDialog.newDialog(Common.language.getString("mysql_dialog_new_connection_success"));
+            }
+        });
 
         this.setIconImage(ImageLoader.load(ImageLoader.MYSQL_CONNECTION).size32().getImage());
         this.setTitle(Common.language.getString("mysql_button_new_connection"));
@@ -112,14 +129,19 @@ public class NewConnection extends JDialog {
         passwordLabel.setText("密码");
         panel1.add(passwordLabel, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JPanel panel2 = new JPanel();
-        panel2.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        panel2.setLayout(new GridLayoutManager(1, 4, new Insets(8, 8, 8, 8), -1, -1));
         panel.add(panel2, BorderLayout.SOUTH);
-        confirm = new JButton();
-        confirm.setText("Button");
-        panel2.add(confirm);
+        test = new JButton();
+        test.setText("Button");
+        panel2.add(test, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        final Spacer spacer1 = new Spacer();
+        panel2.add(spacer1, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
         cancel = new JButton();
         cancel.setText("Button");
-        panel2.add(cancel);
+        panel2.add(cancel, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        confirm = new JButton();
+        confirm.setText("Button");
+        panel2.add(confirm, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         final JPanel panel3 = new JPanel();
         panel3.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
         panel.add(panel3, BorderLayout.NORTH);
