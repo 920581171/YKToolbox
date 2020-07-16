@@ -5,6 +5,7 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.luoyk.toolbox.api.MySQLApi;
 import com.luoyk.toolbox.api.MySQLConnection;
 import com.luoyk.toolbox.api.SqlResult;
+import com.luoyk.toolbox.panel.MessageDialog;
 import com.luoyk.toolbox.panel.Refresh;
 import com.luoyk.toolbox.utils.Common;
 import com.luoyk.toolbox.utils.ImageLoader;
@@ -95,11 +96,13 @@ public class MySQL implements Refresh {
                         connectionTree.setSelectionPath(path);
                         JPopupMenu jPopupMenu = new JPopupMenu();
                         JMenuItem close = new JMenuItem(Common.language.getString("mysql_tree_popup_menu_item_close"));
+                        JMenuItem newDatabase = new JMenuItem(Common.language.getString("mysql_tree_popup_menu_item_new_database"));
+
+                        DefaultMutableTreeNode host = (DefaultMutableTreeNode) path.getLastPathComponent();
+                        String hostStr = (String) host.getUserObject();
                         close.addActionListener(e1 -> {
                             switch (path.getPathCount()) {
                                 case 2:
-                                    DefaultMutableTreeNode host = (DefaultMutableTreeNode) path.getLastPathComponent();
-                                    String hostStr = (String) host.getUserObject();
                                     MySQLConnection.closeConnection(hostStr);
                                     host.removeAllChildren();
                                     treeModel.reload(host);
@@ -116,7 +119,20 @@ public class MySQL implements Refresh {
                                     break;
                             }
                         });
+
+                        newDatabase.addActionListener(e12 -> {
+                            NewDataBase.create(hostStr, aBoolean -> {
+                                if (aBoolean) {
+                                    MessageDialog.newDialog(Common.language.getString("mysql_new_database_create_success"));
+                                    initTree();
+                                } else {
+                                    MessageDialog.newDialog(Common.language.getString("mysql_new_database_create_fail"));
+                                }
+                            });
+                        });
+
                         jPopupMenu.add(close);
+                        jPopupMenu.add(newDatabase);
                         jPopupMenu.show(connectionTree, e.getX(), e.getY());
                     }
 

@@ -97,6 +97,50 @@ public class MySQLApi {
         }
     }
 
+    public static SqlResult showCharacterSet(String host) {
+        Connection connection = MySQLConnection.getConnection(host);
+        try (Statement statement = connection.createStatement()) {
+            long time = System.currentTimeMillis();
+            String sql = "SHOW CHARACTER SET";
+            try (ResultSet resultSet = statement.executeQuery(sql)) {
+                time = System.currentTimeMillis() - time;
+                return convertSqlResult(resultSet).setSql(sql).setTime((int) time);
+            }
+        } catch (SQLException throwable) {
+            MessageDialog.newDialog(Common.language.getString("mysql_dialog_new_connection_query_error"));
+            throw new RuntimeException(throwable);
+        }
+    }
+
+    public static SqlResult showCollation(String host, String Charset) {
+        Connection connection = MySQLConnection.getConnection(host);
+        try (Statement statement = connection.createStatement()) {
+            long time = System.currentTimeMillis();
+            String sql = "SHOW COLLATION WHERE Charset = '" + Charset + "'";
+            try (ResultSet resultSet = statement.executeQuery(sql)) {
+                time = System.currentTimeMillis() - time;
+                return convertSqlResult(resultSet).setSql(sql).setTime((int) time);
+            }
+        } catch (SQLException throwable) {
+            MessageDialog.newDialog(Common.language.getString("mysql_dialog_new_connection_query_error"));
+            throw new RuntimeException(throwable);
+        }
+    }
+
+    public static boolean createDataBase(String host, String dbName, String charset, String collate) {
+        Connection connection = MySQLConnection.getConnection(host);
+        try (Statement statement = connection.createStatement()) {
+            String sql = "CREATE DATABASE IF NOT EXISTS " + dbName +
+                    " DEFAULT CHARSET " + charset +
+                    " COLLATE " + collate;
+            statement.execute(sql);
+            return true;
+        } catch (SQLException throwable) {
+            throwable.printStackTrace();
+            return false;
+        }
+    }
+
     public static SqlResult executeSQL(String host, String database, String sql) {
         Connection connection = MySQLConnection.getConnection(host);
         try (Statement statement = connection.createStatement()) {
