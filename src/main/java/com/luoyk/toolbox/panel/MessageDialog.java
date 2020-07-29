@@ -18,10 +18,25 @@ public class MessageDialog extends JDialog {
     private ActionListener confirmActionListener;
     private ActionListener cancelActionListener;
 
-    public static MessageDialog newDialog(String message) {
+    public static MessageDialog showDialog(String message) {
         MessageDialog messageDialog = new MessageDialog();
         messageDialog.message.setText(message);
         messageDialog.init();
+        return messageDialog;
+    }
+
+    public static MessageDialog showDialog(String message, String confirmStr, String cancelStr) {
+        MessageDialog messageDialog = new MessageDialog();
+        messageDialog.message.setText(message);
+        messageDialog.confirm.setText(confirmStr);
+        messageDialog.cancel.setText(cancelStr);
+        messageDialog.init();
+        return messageDialog;
+    }
+
+    public static MessageDialog newDialog(String message) {
+        MessageDialog messageDialog = new MessageDialog();
+        messageDialog.message.setText(message);
         return messageDialog;
     }
 
@@ -30,7 +45,6 @@ public class MessageDialog extends JDialog {
         messageDialog.message.setText(message);
         messageDialog.confirm.setText(confirmStr);
         messageDialog.cancel.setText(cancelStr);
-        messageDialog.init();
         return messageDialog;
     }
 
@@ -55,7 +69,7 @@ public class MessageDialog extends JDialog {
     private MessageDialog() {
     }
 
-    private void init() {
+    public void init() {
         setIconImage(ImageLoader.load(ImageLoader.MAIN_INFO).size32().getImage());
         setContentPane(panel);
         setModal(true);

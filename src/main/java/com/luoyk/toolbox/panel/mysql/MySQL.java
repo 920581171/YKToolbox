@@ -94,15 +94,28 @@ public class MySQL implements Refresh {
                 if (path != null) {
                     if (e.getButton() == MouseEvent.BUTTON3 && e.getClickCount() == 1) {
                         connectionTree.setSelectionPath(path);
-                        JPopupMenu jPopupMenu = new JPopupMenu();
                         JMenuItem close = new JMenuItem(Common.language.getString("mysql_tree_popup_menu_item_close"));
                         JMenuItem newDatabase = new JMenuItem(Common.language.getString("mysql_tree_popup_menu_item_new_database"));
+                        JMenuItem dropDataBase = new JMenuItem(Common.language.getString("mysql_tree_popup_menu_item_drop_database"));
 
-                        DefaultMutableTreeNode host = (DefaultMutableTreeNode) path.getLastPathComponent();
-                        String hostStr = (String) host.getUserObject();
+                        switch (path.getPathCount()) {
+                            case 2:
+                                showConnectionTreePopMenu(e, close, newDatabase);
+                                break;
+                            case 3:
+                                showConnectionTreePopMenu(e, close, dropDataBase);
+                                break;
+                            case 4:
+                                break;
+                            default:
+                                break;
+                        }
+
                         close.addActionListener(e1 -> {
                             switch (path.getPathCount()) {
                                 case 2:
+                                    DefaultMutableTreeNode host = (DefaultMutableTreeNode) path.getLastPathComponent();
+                                    String hostStr = getTreePathNodeName(path);
                                     MySQLConnection.closeConnection(hostStr);
                                     host.removeAllChildren();
                                     treeModel.reload(host);
@@ -120,20 +133,29 @@ public class MySQL implements Refresh {
                             }
                         });
 
-                        newDatabase.addActionListener(e12 -> {
-                            NewDataBase.create(hostStr, aBoolean -> {
-                                if (aBoolean) {
-                                    MessageDialog.newDialog(Common.language.getString("mysql_new_database_create_success"));
-                                    initTree();
-                                } else {
-                                    MessageDialog.newDialog(Common.language.getString("mysql_new_database_create_fail"));
+                        newDatabase.addActionListener(e1 -> {
+                                    String hostStr = getTreePathNodeName(path);
+                                    NewDataBase.create(hostStr, aBoolean -> {
+                                        if (aBoolean) {
+                                            MessageDialog.showDialog(Common.language.getString("mysql_new_database_create_success"));
+                                            initTree();
+                                        } else {
+                                            MessageDialog.showDialog(Common.language.getString("mysql_new_database_create_fail"));
+                                        }
+                                    });
                                 }
-                            });
-                        });
+                        );
 
-                        jPopupMenu.add(close);
-                        jPopupMenu.add(newDatabase);
-                        jPopupMenu.show(connectionTree, e.getX(), e.getY());
+                        dropDataBase.addActionListener(e1 -> {
+                            String str = getTreePathNodeName(path.getParentPath());
+                            String database = getTreePathNodeName(path);
+                            MessageDialog.newDialog(Common.language.getString("mysql_dialog_drop_database_message"))
+                                    .setConfirmActionListener(e2 -> {
+                                        MySQLApi.dropDataBase(str, database);
+                                        initTree();
+                                    })
+                                    .init();
+                        });
                     }
 
                     if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
@@ -277,6 +299,19 @@ public class MySQL implements Refresh {
         initTree();
         initTabbedPane();
         newConnection.setToolTipText(Common.language.getString("mysql_button_new_connection"));
+    }
+
+    public String getTreePathNodeName(TreePath treePath) {
+        Object userObject = ((DefaultMutableTreeNode) treePath.getLastPathComponent()).getUserObject();
+        return userObject instanceof String ? (String) userObject : null;
+    }
+
+    public void showConnectionTreePopMenu(MouseEvent e, JMenuItem... items) {
+        JPopupMenu jPopupMenu = new JPopupMenu();
+        for (JMenuItem item : items) {
+            jPopupMenu.add(item);
+        }
+        jPopupMenu.show(connectionTree, e.getX(), e.getY());
     }
 
     {

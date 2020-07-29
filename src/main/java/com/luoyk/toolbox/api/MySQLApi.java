@@ -22,7 +22,7 @@ public class MySQLApi {
             }
         } catch (SQLException throwable) {
             throwable.printStackTrace();
-            MessageDialog.newDialog(Common.language.getString("mysql_dialog_new_connection_statement_fail"));
+            MessageDialog.showDialog(Common.language.getString("mysql_dialog_new_connection_statement_fail"));
             throw new RuntimeException(throwable);
         }
     }
@@ -40,7 +40,7 @@ public class MySQLApi {
             }
         } catch (SQLException throwable) {
             throwable.printStackTrace();
-            MessageDialog.newDialog(Common.language.getString("mysql_dialog_new_connection_statement_fail"));
+            MessageDialog.showDialog(Common.language.getString("mysql_dialog_new_connection_statement_fail"));
             throw new RuntimeException(throwable);
         }
     }
@@ -58,7 +58,7 @@ public class MySQLApi {
             }
         } catch (SQLException throwable) {
             throwable.printStackTrace();
-            MessageDialog.newDialog(Common.language.getString("mysql_dialog_new_connection_statement_fail"));
+            MessageDialog.showDialog(Common.language.getString("mysql_dialog_new_connection_statement_fail"));
             throw new RuntimeException(throwable);
         }
     }
@@ -76,7 +76,7 @@ public class MySQLApi {
             }
         } catch (SQLException throwable) {
             throwable.printStackTrace();
-            MessageDialog.newDialog(Common.language.getString("mysql_dialog_new_connection_statement_fail"));
+            MessageDialog.showDialog(Common.language.getString("mysql_dialog_new_connection_statement_fail"));
             throw new RuntimeException(throwable);
         }
     }
@@ -92,7 +92,7 @@ public class MySQLApi {
                 return convertSqlResult(resultSet).setSql(sql).setTime((int) time);
             }
         } catch (SQLException throwable) {
-            MessageDialog.newDialog(Common.language.getString("mysql_dialog_new_connection_query_error"));
+            MessageDialog.showDialog(Common.language.getString("mysql_dialog_new_connection_query_error"));
             throw new RuntimeException(throwable);
         }
     }
@@ -107,7 +107,7 @@ public class MySQLApi {
                 return convertSqlResult(resultSet).setSql(sql).setTime((int) time);
             }
         } catch (SQLException throwable) {
-            MessageDialog.newDialog(Common.language.getString("mysql_dialog_new_connection_query_error"));
+            MessageDialog.showDialog(Common.language.getString("mysql_dialog_new_connection_query_error"));
             throw new RuntimeException(throwable);
         }
     }
@@ -122,7 +122,7 @@ public class MySQLApi {
                 return convertSqlResult(resultSet).setSql(sql).setTime((int) time);
             }
         } catch (SQLException throwable) {
-            MessageDialog.newDialog(Common.language.getString("mysql_dialog_new_connection_query_error"));
+            MessageDialog.showDialog(Common.language.getString("mysql_dialog_new_connection_query_error"));
             throw new RuntimeException(throwable);
         }
     }
@@ -133,6 +133,18 @@ public class MySQLApi {
             String sql = "CREATE DATABASE IF NOT EXISTS " + dbName +
                     " DEFAULT CHARSET " + charset +
                     " COLLATE " + collate;
+            statement.execute(sql);
+            return true;
+        } catch (SQLException throwable) {
+            throwable.printStackTrace();
+            return false;
+        }
+    }
+
+    public static boolean dropDataBase(String host, String dbName) {
+        Connection connection = MySQLConnection.getConnection(host);
+        try (Statement statement = connection.createStatement()) {
+            String sql = "DROP DATABASE " + dbName;
             statement.execute(sql);
             return true;
         } catch (SQLException throwable) {
@@ -153,7 +165,7 @@ public class MySQLApi {
             }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
-            MessageDialog.newDialog(Common.language.getString("mysql_dialog_new_sql_execute_fail"));
+            MessageDialog.showDialog(Common.language.getString("mysql_dialog_new_sql_execute_fail"));
             throw new RuntimeException(throwables);
         }
     }

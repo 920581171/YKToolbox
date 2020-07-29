@@ -32,7 +32,7 @@ public class MySQLConnection {
             }
             return true;
         } catch (ClassNotFoundException | SQLException e) {
-            MessageDialog.newDialog(Common.language.getString("mysql_dialog_new_connection_fail"));
+            MessageDialog.showDialog(Common.language.getString("mysql_dialog_new_connection_fail"));
             e.printStackTrace();
         }
         return false;
@@ -46,7 +46,7 @@ public class MySQLConnection {
                     connectionInfo.getUsername(), new String(connectionInfo.getPassword()));
             return true;
         } catch (ClassNotFoundException | SQLException e) {
-            MessageDialog.newDialog(Common.language.getString("mysql_dialog_new_connection_fail"));
+            MessageDialog.showDialog(Common.language.getString("mysql_dialog_new_connection_fail"));
             e.printStackTrace();
         }
         return false;
@@ -61,7 +61,7 @@ public class MySQLConnection {
             }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
-            MessageDialog.newDialog(Common.language.getString("mysql_dialog_new_connection_close_connection_fail"));
+            MessageDialog.showDialog(Common.language.getString("mysql_dialog_new_connection_close_connection_fail"));
         }
     }
 
@@ -74,14 +74,14 @@ public class MySQLConnection {
             HASH_MAP.remove(host);
         } catch (SQLException throwables) {
             throwables.printStackTrace();
-            MessageDialog.newDialog(Common.language.getString("mysql_dialog_new_connection_close_connection_fail"));
+            MessageDialog.showDialog(Common.language.getString("mysql_dialog_new_connection_close_connection_fail"));
         }
     }
 
     public static Connection getConnection(String host) {
         ConnectionInfo connectionInfo = HASH_MAP.get(host);
         if (connectionInfo == null) {
-            MessageDialog.newDialog(Common.language.getString("mysql_dialog_new_connection_statement_fail"));
+            MessageDialog.showDialog(Common.language.getString("mysql_dialog_new_connection_statement_fail"));
             throw new NullPointerException();
         }
         if (connectionInfo.getConnection() == null) {
