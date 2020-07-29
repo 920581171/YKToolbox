@@ -72,7 +72,7 @@ public class NewConnection extends JDialog {
             connectionInfo.setPassword(password.getPassword());
 
             if (MySQLConnection.TestConnection(connectionInfo)) {
-                MessageDialog.newDialog(Common.language.getString("mysql_dialog_new_connection_success"));
+                MessageDialog.showDialog(Common.language.getString("mysql_dialog_new_connection_success"));
             }
         });
 
