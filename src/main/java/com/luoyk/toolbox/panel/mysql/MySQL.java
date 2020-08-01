@@ -15,12 +15,28 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
+import java.util.Optional;
 
 
 public class MySQL implements Refresh {
+
+    public static final int TREE_PATH_COUNT_ROOT = 1;
+    public static final int TREE_PATH_COUNT_HOST = 2;
+    public static final int TREE_PATH_COUNT_DATABASE = 3;
+    public static final int TREE_PATH_COUNT_TABLE = 4;
+    public static final int TREE_PATH_COUNT_SELECT_TABLE = 5;
+
+    public static final JMenuItem close = new JMenuItem(Common.language.getString("mysql_tree_popup_menu_item_close"));
+    public static final JMenuItem newDatabase = new JMenuItem(Common.language.getString("mysql_tree_popup_menu_item_new_database"));
+    public static final JMenuItem dropDataBase = new JMenuItem(Common.language.getString("mysql_tree_popup_menu_item_drop_database"));
+
+    public static ActionListener closeAction;
+    public static ActionListener newDatabaseAction;
+    public static ActionListener dropDataBaseAction;
 
     private JPanel panel;
     private JPanel center;
@@ -94,82 +110,39 @@ public class MySQL implements Refresh {
                 if (path != null) {
                     if (e.getButton() == MouseEvent.BUTTON3 && e.getClickCount() == 1) {
                         connectionTree.setSelectionPath(path);
-                        JMenuItem close = new JMenuItem(Common.language.getString("mysql_tree_popup_menu_item_close"));
-                        JMenuItem newDatabase = new JMenuItem(Common.language.getString("mysql_tree_popup_menu_item_new_database"));
-                        JMenuItem dropDataBase = new JMenuItem(Common.language.getString("mysql_tree_popup_menu_item_drop_database"));
 
                         switch (path.getPathCount()) {
-                            case 2:
+                            case TREE_PATH_COUNT_HOST:
                                 showConnectionTreePopMenu(e, close, newDatabase);
                                 break;
-                            case 3:
+                            case TREE_PATH_COUNT_DATABASE:
                                 showConnectionTreePopMenu(e, close, dropDataBase);
                                 break;
-                            case 4:
+                            case TREE_PATH_COUNT_TABLE:
+                                showConnectionTreePopMenu(e, close);
+                                break;
+                            case TREE_PATH_COUNT_SELECT_TABLE:
+                                showConnectionTreePopMenu(e, close);
                                 break;
                             default:
                                 break;
                         }
 
-                        close.addActionListener(e1 -> {
-                            switch (path.getPathCount()) {
-                                case 2:
-                                    DefaultMutableTreeNode host = (DefaultMutableTreeNode) path.getLastPathComponent();
-                                    String hostStr = getTreePathNodeName(path);
-                                    MySQLConnection.closeConnection(hostStr);
-                                    host.removeAllChildren();
-                                    treeModel.reload(host);
-                                    break;
-                                case 4:
-                                    DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
-                                    node.removeAllChildren();
-                                    treeModel.reload(node);
-                                    break;
-                                case 5:
-                                    clearTable();
-                                    break;
-                                default:
-                                    break;
-                            }
-                        });
-
-                        newDatabase.addActionListener(e1 -> {
-                                    String hostStr = getTreePathNodeName(path);
-                                    NewDataBase.create(hostStr, aBoolean -> {
-                                        if (aBoolean) {
-                                            MessageDialog.showDialog(Common.language.getString("mysql_new_database_create_success"));
-                                            initTree();
-                                        } else {
-                                            MessageDialog.showDialog(Common.language.getString("mysql_new_database_create_fail"));
-                                        }
-                                    });
-                                }
-                        );
-
-                        dropDataBase.addActionListener(e1 -> {
-                            String str = getTreePathNodeName(path.getParentPath());
-                            String database = getTreePathNodeName(path);
-                            MessageDialog.newDialog(Common.language.getString("mysql_dialog_drop_database_message"))
-                                    .setConfirmActionListener(e2 -> {
-                                        MySQLApi.dropDataBase(str, database);
-                                        initTree();
-                                    })
-                                    .init();
-                        });
+                        popupMenuAction(path);
                     }
 
                     if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
                         switch (path.getPathCount()) {
-                            case 2:
-                                pathCount2(path);
+                            case TREE_PATH_COUNT_HOST:
+                                hostDoubleClick(path);
                                 break;
-                            case 3:
+                            case TREE_PATH_COUNT_DATABASE:
                                 break;
-                            case 4:
-                                pathCount4(path);
+                            case TREE_PATH_COUNT_TABLE:
+                                tableDoubleClick(path);
                                 break;
-                            case 5:
-                                pathCount5(path);
+                            case TREE_PATH_COUNT_SELECT_TABLE:
+                                selectTableDoubleClick(path);
                                 break;
                             default:
                                 break;
@@ -188,7 +161,7 @@ public class MySQL implements Refresh {
         connectionTree.addMouseListener(connectionTreeMouseListener);
     }
 
-    private void pathCount2(TreePath path) {
+    private void hostDoubleClick(TreePath path) {
         DefaultMutableTreeNode host = (DefaultMutableTreeNode) path.getLastPathComponent();
         //判断该节点是否展开过
         if (!connectionTree.hasBeenExpanded(path)) {
@@ -207,7 +180,7 @@ public class MySQL implements Refresh {
         treeModel.reload(host);
     }
 
-    private void pathCount4(TreePath path) {
+    private void tableDoubleClick(TreePath path) {
         DefaultMutableTreeNode host = (DefaultMutableTreeNode) path.getPathComponent(1);
         DefaultMutableTreeNode database = (DefaultMutableTreeNode) path.getPathComponent(2);
         DefaultMutableTreeNode path3 = (DefaultMutableTreeNode) path.getLastPathComponent();
@@ -235,7 +208,7 @@ public class MySQL implements Refresh {
         }
     }
 
-    private void pathCount5(TreePath path) {
+    private void selectTableDoubleClick(TreePath path) {
         DefaultMutableTreeNode host = (DefaultMutableTreeNode) path.getPathComponent(1);
         DefaultMutableTreeNode database = (DefaultMutableTreeNode) path.getPathComponent(2);
         DefaultMutableTreeNode table = (DefaultMutableTreeNode) path.getLastPathComponent();
@@ -286,6 +259,69 @@ public class MySQL implements Refresh {
         tabbedPane.addTab(null, null);
         tabbedPane.setTabComponentAt(0, firstTab);
         tabbedPane.setTabComponentAt(1, lastTab);
+    }
+
+    private void popupMenuAction(TreePath path) {
+        close.addActionListener(Optional.ofNullable(closeAction).map(actionListener -> {
+                    close.removeActionListener(actionListener);
+                    return closeAction = null;
+                }).orElseGet(() -> closeAction = e -> {
+                    switch (path.getPathCount()) {
+                        case TREE_PATH_COUNT_HOST:
+                            DefaultMutableTreeNode host = (DefaultMutableTreeNode) path.getLastPathComponent();
+                            String hostStr = getTreePathNodeName(path);
+                            MySQLConnection.closeConnection(hostStr);
+                            host.removeAllChildren();
+                            treeModel.reload(host);
+                            break;
+                        case TREE_PATH_COUNT_DATABASE:
+                            connectionTree.collapsePath(path);
+                            break;
+                        case TREE_PATH_COUNT_TABLE:
+                            DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+                            node.removeAllChildren();
+                            treeModel.reload(node);
+                            break;
+                        case TREE_PATH_COUNT_SELECT_TABLE:
+                            clearTable();
+                            break;
+                        default:
+                            break;
+                    }
+                })
+        );
+
+        newDatabase.addActionListener(
+                Optional.ofNullable(newDatabaseAction).map(actionListener -> {
+                    newDatabase.removeActionListener(actionListener);
+                    return newDatabaseAction = null;
+                }).orElseGet(() -> newDatabaseAction = e -> {
+                    String hostStr = getTreePathNodeName(path);
+                    NewDataBase.create(hostStr, aBoolean -> {
+                        if (aBoolean) {
+                            MessageDialog.showDialog(Common.language.getString("mysql_new_database_create_success"));
+                            initTree();
+                        } else {
+                            MessageDialog.showDialog(Common.language.getString("mysql_new_database_create_fail"));
+                        }
+                    });
+                })
+        );
+
+        dropDataBase.addActionListener(
+                Optional.ofNullable(dropDataBaseAction).map(actionListener -> {
+                    dropDataBase.removeActionListener(actionListener);
+                    return dropDataBaseAction = null;
+                }).orElseGet(() -> dropDataBaseAction = e -> {
+                    String str = getTreePathNodeName(path.getParentPath());
+                    String database = getTreePathNodeName(path);
+                    MessageDialog.newDialog(Common.language.getString("mysql_dialog_drop_database_message"))
+                            .setConfirmActionListener(e2 -> {
+                                MySQLApi.dropDataBase(str, database);
+                                initTree();
+                            }).init();
+                })
+        );
     }
 
     private void clearTable() {
