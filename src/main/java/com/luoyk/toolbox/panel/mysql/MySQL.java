@@ -33,10 +33,14 @@ public class MySQL implements Refresh {
     public static final JMenuItem close = new JMenuItem(Common.language.getString("mysql_tree_popup_menu_item_close"));
     public static final JMenuItem newDatabase = new JMenuItem(Common.language.getString("mysql_tree_popup_menu_item_new_database"));
     public static final JMenuItem dropDataBase = new JMenuItem(Common.language.getString("mysql_tree_popup_menu_item_drop_database"));
+    public static final JMenuItem newTable = new JMenuItem(Common.language.getString("mysql_tree_popup_menu_item_new_table"));
+    public static final JMenuItem dropTable = new JMenuItem(Common.language.getString("mysql_tree_popup_menu_item_drop_table"));
 
     public static ActionListener closeAction;
     public static ActionListener newDatabaseAction;
     public static ActionListener dropDataBaseAction;
+    public static ActionListener newTableAction;
+    public static ActionListener dropTableAction;
 
     private JPanel panel;
     private JPanel center;
@@ -119,10 +123,10 @@ public class MySQL implements Refresh {
                                 showConnectionTreePopMenu(e, close, dropDataBase);
                                 break;
                             case TREE_PATH_COUNT_TABLE:
-                                showConnectionTreePopMenu(e, close);
+                                showConnectionTreePopMenu(e, close, newTable);
                                 break;
                             case TREE_PATH_COUNT_SELECT_TABLE:
-                                showConnectionTreePopMenu(e, close);
+                                showConnectionTreePopMenu(e, close, dropTable);
                                 break;
                             default:
                                 break;
@@ -320,6 +324,39 @@ public class MySQL implements Refresh {
                                 MySQLApi.dropDataBase(str, database);
                                 initTree();
                             }).init();
+                })
+        );
+
+        newTable.addActionListener(
+                Optional.ofNullable(newTableAction).map(actionListener -> {
+                    newTable.removeActionListener(newTableAction);
+                    return newTableAction = null;
+                }).orElseGet(() -> newTableAction = e -> {
+                    NewTable table = new NewTable();
+                    int tabCount = tabbedPane.getTabCount();
+                    TabPanel newTable = new TabPanel(Common.language.getString("mysql_button_new_sql"));
+                    newTable.setClose(mouseEvent -> {
+                        tabbedPane.remove(newTable);
+                        tabbedPane.remove(table.getPanel());
+                        if (tabbedPane.getSelectedComponent() == null) {
+                            //数组从0数起，-1指本身,-2指上一个
+                            int previous = tabbedPane.getTabCount() - 2;
+                            tabbedPane.setSelectedIndex(previous);
+                        }
+                    });
+                    tabbedPane.addTab(null, null);
+                    tabbedPane.setComponentAt(tabCount - 1, table.getPanel());
+                    tabbedPane.setTabComponentAt(tabCount - 1, newTable);
+                    tabbedPane.setTabComponentAt(tabCount, lastTab);
+                    tabbedPane.setSelectedComponent(table.getPanel());
+                })
+        );
+
+        dropTable.addActionListener(
+                Optional.ofNullable(dropTableAction).map(actionListener -> {
+                    dropTable.removeActionListener(dropTableAction);
+                    return dropTableAction = null;
+                }).orElseGet(() -> dropTableAction = e -> {
                 })
         );
     }
