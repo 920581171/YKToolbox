@@ -1,18 +1,16 @@
 package com.luoyk.toolbox.utils;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class MysqlWord {
 
-    private static final Set<String> wordSet;
-    private static final Map<String, Set<String>> wordMap;
+    private static final Set<String> WORD_SET;
+    private static final List<String> TYPE_LIST;
+    private static final Map<String, Set<String>> WORD_MAP;
 
     static {
-        String s = "ACCESSIBLE\n" +
+        String keyWord = "ACCESSIBLE\n" +
                 "ACCOUNT\n" +
                 "ACTION\n" +
                 "ACTIVE\n" +
@@ -724,22 +722,50 @@ public class MysqlWord {
                 "YEAR_MONTH\n" +
                 "ZEROFILL";
 
-        wordSet = Arrays.stream(s.split("\n")).collect(Collectors.toSet());
+        String typeWord = "INTEGER\n" +
+                "INT\n" +
+                "SMALLINT\n" +
+                "TINYINT\n" +
+                "MEDIUMINT\n" +
+                "BIGINT\n" +
+                "DECIMAL\n" +
+                "NUMERIC\n" +
+                "FLOAT\n" +
+                "DOUBLE\n" +
+                "BIT\n" +
+                "DATE\n" +
+                "DATETIME\n" +
+                "TIMESTAMP\n" +
+                "CHAR\n" +
+                "VARCHAR\n" +
+                "BLOB\n" +
+                "TEXT\n" +
+                "ENUM\n" +
+                "SET\n" +
+                "JSON";
 
-        wordMap = wordSet.stream().collect(Collectors.groupingBy(str -> str.substring(0, 1), Collectors.toSet()));
+        WORD_SET = Arrays.stream(keyWord.split("\n")).collect(Collectors.toSet());
+
+        WORD_MAP = WORD_SET.stream().collect(Collectors.groupingBy(str -> str.substring(0, 1), Collectors.toSet()));
+
+        TYPE_LIST = Arrays.stream(typeWord.split("\n")).collect(Collectors.toList());
     }
 
     public static Set<String> getWordSet() {
-        return wordSet;
+        return WORD_SET;
     }
 
     public static boolean isWord(String str) {
         return Optional.ofNullable(str)
                 .filter(s -> str.length() != 0)
                 .map(s -> str.substring(0, 1))
-                .map(wordMap::get)
+                .map(WORD_MAP::get)
                 .map(set -> set.contains(str))
                 .orElse(false);
+    }
+
+    public static List<String> typeList() {
+        return TYPE_LIST;
     }
 
 }

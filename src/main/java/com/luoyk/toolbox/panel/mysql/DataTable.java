@@ -35,7 +35,7 @@ public class DataTable {
         table.setRowHeight(Common.fontSize + Common.fontSize / 2);
 
         for (int i = 0; i < columnNames.length; i++) {
-            final int width = columnNames[i].length() * Common.fontSize;
+            int width = columnNames[i].length() * Common.fontSize;
             table.getColumnModel().getColumn(i).setPreferredWidth(width);
         }
 
