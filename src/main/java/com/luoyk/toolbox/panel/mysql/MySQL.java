@@ -332,9 +332,11 @@ public class MySQL implements Refresh {
                     newTable.removeActionListener(newTableAction);
                     return newTableAction = null;
                 }).orElseGet(() -> newTableAction = e -> {
-                    NewTable table = new NewTable();
+                    String host = getTreePathNodeName(path.getParentPath().getParentPath());
+                    String database = getTreePathNodeName(path.getParentPath());
+                    NewTable table = new NewTable(host, database);
                     int tabCount = tabbedPane.getTabCount();
-                    TabPanel newTable = new TabPanel(Common.language.getString("mysql_button_new_sql"));
+                    TabPanel newTable = new TabPanel(Common.language.getString("mysql_tree_popup_menu_item_new_table"));
                     newTable.setClose(mouseEvent -> {
                         tabbedPane.remove(newTable);
                         tabbedPane.remove(table.getPanel());

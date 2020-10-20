@@ -47,6 +47,12 @@
               <text value="Button"/>
             </properties>
           </component>
+          <component id="ffa93" class="javax.swing.JButton" binding="checkSQL">
+            <constraints/>
+            <properties>
+              <text value="Button"/>
+            </properties>
+          </component>
         </children>
       </grid>
     </children>

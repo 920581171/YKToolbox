@@ -35,8 +35,14 @@ public class NewTable {
     private JButton removeField;
     private JButton up;
     private JButton down;
+    private JButton checkSQL;
 
-    public NewTable() {
+    private final String host;
+    private final String dataBase;
+
+    public NewTable(String host, String dataBase) {
+        this.host = host;
+        this.dataBase = dataBase;
         init();
     }
 
@@ -65,6 +71,7 @@ public class NewTable {
         removeField.setText(Common.language.getString("mysql_new_table_remove_field"));
         up.setText(Common.language.getString("mysql_new_table_up"));
         down.setText(Common.language.getString("mysql_new_table_down"));
+        checkSQL.setText(Common.language.getString("mysql_new_table_check_sql"));
 
         addField.addActionListener(e -> {
             defaultTableModel.addRow(getBaseField());
@@ -92,6 +99,59 @@ public class NewTable {
                 table.changeSelection(selectedRow + 1, 6, false, false);
             }
         });
+
+        //todo 单独显示SQL
+        checkSQL.addActionListener(e -> {
+            String sql = getSQL();
+            //todo 执行SQL
+//            MySQLApi.executeSQL(host, dataBase, sql);
+        });
+    }
+
+    //生成SQL语句
+    public String getSQL() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("CREATE TABLE `t_table` (\n");
+
+        StringBuilder pk = null;
+
+        int rowCount = table.getModel().getRowCount();
+        for (int i = 0; i < rowCount; i++) {
+            for (int j = 0; j < columnNames.length; j++) {
+                String columnName = columnNames[j];
+                String text = String.valueOf(table.getModel().getValueAt(i, j));
+                if (columnName.equals(Common.language.getString("mysql_new_table_field_name"))) {
+                    builder.append("`").append(text).append("` ");
+                } else if (columnName.equals(Common.language.getString("mysql_new_table_data_type"))) {
+                    builder.append(text).append(" ");
+                } else if (columnName.equals(Common.language.getString("mysql_new_table_data_length"))) {
+                    builder.append("(").append(text).append(")").append(" ");
+                } else if (columnName.equals(Common.language.getString("mysql_new_table_precision"))) {
+                } else if (columnName.equals(Common.language.getString("mysql_new_table_primary_key"))) {
+                    if (pk == null) {
+                        pk = new StringBuilder("PRIMARY KEY (`");
+                    }
+                    pk.append(table.getModel().getValueAt(i, 0)).append("`,");
+                } else if (columnName.equals(Common.language.getString("mysql_new_table_not_null"))) {
+                    builder.append("NOT NULL ");
+                } else if (columnName.equals(Common.language.getString("mysql_new_table_comment"))) {
+                    builder.append("COMMENT '").append(text).append("'");
+                }
+            }
+            builder.append(",\n");
+
+        }
+
+        if (pk != null) {
+            pk.deleteCharAt(pk.length() - 1);
+            pk.append(")\n");
+            builder.append(pk);
+            builder.append(")");
+        }
+
+        System.out.println(builder.toString());
+
+        return builder.toString();
     }
 
     public DefaultCellEditor newJComboBox() {
@@ -139,6 +199,9 @@ public class NewTable {
         down = new JButton();
         down.setText("Button");
         panel1.add(down);
+        checkSQL = new JButton();
+        checkSQL.setText("Button");
+        panel1.add(checkSQL);
     }
 
     /**
